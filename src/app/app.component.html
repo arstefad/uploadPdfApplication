@@ -1,0 +1,14 @@
+<div style="width: 50%;" class="col">
+    <div class="mat-form-field-container">
+        <h3>Scegli un documento</h3>
+        <button type="button" mat-raised-button (click)="fileInput.click()">Scegli file</button>
+        <input hidden (change)="onFileSelected($event)" #fileInput type="file">
+        <span class="file-name">{{selectedFile?.name}}</span>
+    </div>
+    <div class="file-preview-container">
+        <ngx-extended-pdf-viewer [base64Src]="selectedFileB64" [height]="'100%'"
+        [useBrowserLocale]="true" [handTool]="false" [showHandToolButton]="true" *ngIf="isFileDocument">
+        </ngx-extended-pdf-viewer>
+    </div>
+</div>
+
