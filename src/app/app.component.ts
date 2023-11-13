@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
 import { NgxExtendedPdfViewerService, pdfDefaultOptions } from 'ngx-extended-pdf-viewer';
+import { DetectDocumentTextCommand, TextractClient} from "@aws-sdk/client-textract";
 
-
+//console.log(textract);
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -14,6 +15,7 @@ export class AppComponent {
   selectedFileB64: string = "";
   isFileImage = false;
   isFileDocument = false;
+
 
   constructor(private pdfServices: NgxExtendedPdfViewerService){}
 
@@ -28,11 +30,16 @@ export class AppComponent {
         this.selectedFilePath = path as string;
         this.selectedFileB64 = this.selectedFilePath.split(",")[1];
         if(this.selectedFilePath.includes("image")){
+          this.isFileImage = true;
           this.isFileDocument = false;
         }else{
+          this.isFileImage = false;
           this.isFileDocument = true;
         }
       }
+
+     
+      
 
 
 
@@ -40,9 +47,29 @@ export class AppComponent {
   }
 
 
+  /** fetch the s3 object from the event and analyze it using Amazon Textract */
+
+   extractData  = async(eventBridgeEvent: any) => {
+    const textractClient = new TextractClient();
+    
+    const detectDocumentTextCommand = new DetectDocumentTextCommand({
+
+      Document: {
+        S3Object: {
+          Bucket: eventBridgeEvent.Bucket,
+          Name: eventBridgeEvent.object
+        },
+      
+      },
+    });
+  
+    const { Blocks } = await textractClient.send(detectDocumentTextCommand);
+    const extractedWords = Blocks?.filter((b) => b.BlockType === "WORD").map(
+      (b) => b.Text,
+    );
+    return extractedWords?.join(" ");
+  };
+  }
 
 
 
-
-
-}
